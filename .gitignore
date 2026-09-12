@@ -1,0 +1,13 @@
+*.csv
+*.parquet
+*.pkl
+data/
+processed/
+__pycache__/
+.ipynb_checkpoints/
+.kaggle/
+quarantine.csv
+*.zip
+*.csv
+*.parquet
+datasets/
