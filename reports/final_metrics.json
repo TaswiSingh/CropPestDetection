@@ -1,0 +1,63 @@
+{
+  "champion": "xgb_default",
+  "reason": "defaults already at ceiling; tuning added no early-recall gain and raised mech->pest 0.040->0.052",
+  "head1": {
+    "mean_early_recall": 1.0,
+    "std_early_recall": 0.0,
+    "mean_mech_to_pest": 0.04047619047619048,
+    "per_time_mean": {
+      "1": 1.0,
+      "3": 1.0,
+      "6": 1.0,
+      "12": 1.0,
+      "24": 1.0,
+      "48": 0.9888888888888889,
+      "168": 1.0
+    }
+  },
+  "head1_all": {
+    "dummy": {
+      "early": 0.5925925925925926,
+      "mech": 0.6190476190476191
+    },
+    "logreg": {
+      "early": 1.0,
+      "mech": 0.011904761904761904
+    },
+    "rf": {
+      "early": 1.0,
+      "mech": 0.07857142857142858
+    },
+    "xgb_default": {
+      "early": 1.0,
+      "mech": 0.04047619047619048
+    },
+    "xgb_tuned": {
+      "early": 1.0,
+      "mech": 0.052380952380952375
+    }
+  },
+  "head2": {
+    "classes": [
+      "High",
+      "Low",
+      "Medium"
+    ],
+    "mean_acc": 0.6587301587301587,
+    "std_acc": 0.03628295063702369,
+    "per_time_mean_acc": {
+      "1": 0.5277777777777778,
+      "3": 0.6388888888888888,
+      "6": 0.4166666666666667,
+      "12": 0.5333333333333334,
+      "24": 0.8277777777777778,
+      "48": 0.8,
+      "168": 0.8666666666666666
+    }
+  },
+  "gate": {
+    "early_target": 0.85,
+    "mech_limit": 0.05,
+    "pass": true
+  }
+}

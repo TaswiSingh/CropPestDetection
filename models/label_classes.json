@@ -1,0 +1,95 @@
+{
+  "y_L1": [
+    "Control",
+    "Mechanical",
+    "Pest"
+  ],
+  "y_L2": [
+    "High",
+    "Low",
+    "Medium"
+  ],
+  "head1_params": {
+    "n_estimators": 800,
+    "max_depth": 4,
+    "learning_rate": 0.05,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "reg_lambda": 1.0,
+    "n_jobs": -1,
+    "eval_metric": "mlogloss",
+    "random_state": 42
+  },
+  "head2_params": {
+    "n_estimators": 600,
+    "max_depth": 4,
+    "learning_rate": 0.05,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "n_jobs": -1,
+    "eval_metric": "mlogloss",
+    "random_state": 42
+  },
+  "top15_head1_importance": [
+    [
+      "MiCS_NO2__auc",
+      0.20116126537322998
+    ],
+    [
+      "MiCS_NO2__steady",
+      0.1539737582206726
+    ],
+    [
+      "MiCS_NH3__steady",
+      0.10004249960184097
+    ],
+    [
+      "MiCS_NH3__auc",
+      0.0898461863398552
+    ],
+    [
+      "MiCS_NH3__slope",
+      0.053366564214229584
+    ],
+    [
+      "MQ135__slope_ratio",
+      0.029629793018102646
+    ],
+    [
+      "MiCS_CO__peak",
+      0.026076864451169968
+    ],
+    [
+      "TGS2602__peak",
+      0.023656098172068596
+    ],
+    [
+      "MiCS_CO__peak_ratio",
+      0.0215842816978693
+    ],
+    [
+      "MiCS_NO2__peak",
+      0.019088132306933403
+    ],
+    [
+      "MiCS_NO2__slope",
+      0.0182049460709095
+    ],
+    [
+      "MiCS_CO__slope_ratio",
+      0.016044868156313896
+    ],
+    [
+      "MiCS_NO2__peak_ratio",
+      0.01480507105588913
+    ],
+    [
+      "MiCS_NH3__peak",
+      0.013320904225111008
+    ],
+    [
+      "MQ138__peak",
+      0.012751096859574318
+    ]
+  ]
+}
