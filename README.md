@@ -37,3 +37,14 @@ Head-1 `y_L1`: Control / Mechanical / Pest. Head-2 `y_L2` (pest only): Low / Med
 *MiCS NO2/NH3 AUC + steady-state carry 60%+ of gain.*
 
 Full set: `reports/figures/` (`head2_time_curve.png`, `ceiling_bars.png`), viewer `notebooks/06_results.ipynb`, rebuild `python src/plots.py`.
+
+## smoke test file work
+
+- Performed an end-to-end smoke test using representative Control, Low, Medium, High and Mechanical samples to verify data loading, complete SampleID handling, feature extraction, label generation and XGBoost training/prediction.
+- Created and validated a 50-plant dataset with all 7 longitudinal time points and performed plant-wise 5-fold validation with zero train-validation plant overlap.
+- Investigated Mechanical → Pest false positives through feature-level analysis and identified strong overlap in MiCS_NO2 and MiCS_NH3 responses between incorrectly classified Mechanical samples and Pest samples.
+- Created a leakage-free plant-wise 240/60 train-test split from the 300 plants, keeping all longitudinal measurements of each plant together.
+- Evaluated the locked XGBoost Head-1 model on 60 unseen plants, achieving ~99% accuracy, 1.00 early Pest recall and 2.38% Mechanical → Pest false alarms.
+- Evaluated the Head-2 pest severity model, achieving 65.87% accuracy, and analysed its feature importance and performance across time points.
+- Performed Optuna-based XGBoost hyperparameter tuning and compared the tuned model with the default configuration; the default configuration was retained because tuning did not improve early Pest recall.
+- Prepared the ML workflow for future hardware integration by maintaining a common prediction pipeline for CSV replay and future live e-nose sensor readings.
