@@ -96,7 +96,7 @@ def main(feat_path="processed/features.parquet", trials=100, out="reports/baseli
              "colsample_bytree": trial.suggest_float("colsample_bytree", 0.6, 1.0),
              "min_child_weight": trial.suggest_int("min_child_weight", 1, 6),
              "reg_lambda": trial.suggest_float("reg_lambda", 0.5, 5.0)}
-        folds = stratified_group_folds(feat, n_splits=3, seed=trial.number)
+        folds = stratified_group_folds(feat, n_splits=5, seed=42)
         scores = []
         for tr, te in folds:
             m = XGBClassifier(n_estimators=500, n_jobs=-1, eval_metric="mlogloss",

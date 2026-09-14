@@ -18,7 +18,7 @@ def to_pest_binary(y: pd.Series | np.ndarray) -> np.ndarray:
 
 
 def early_pest_recall(y_true, y_pred, time_h, window=EARLY_WINDOW) -> float:
-    mask = pd.Series(time_h).isin(window).to_numpy()
+    mask = np.isin(np.asarray(time_h), window)
     if mask.sum() == 0:
         return float("nan")
     return float(recall_score(to_pest_binary(y_true)[mask],

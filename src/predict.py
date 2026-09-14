@@ -13,6 +13,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 from src.ingestion import UniversalSensorLoader, SENSORS
 from src.features import process_sample
+from advisory.lookup import advise
 
 
 class Predictor:
@@ -32,23 +33,25 @@ class Predictor:
         self.loader = UniversalSensorLoader()
 
     def predict_tidy(self, sdf: pd.DataFrame) -> dict:
-        from advisory.lookup import advise
         row = process_sample(self.loader.from_csv_sample(sdf))
-        x = pd.DataFrame([row])[self.features].to_numpy()
+        x = pd.DataFrame([row]).reindex(columns=self.features).to_numpy()
         p1 = self.l1[int(self.h1.predict(x)[0])]
         p2 = self.l2[int(self.h2.predict(x)[0])] if p1 == "Pest" else None
+        proba = self.h1.predict_proba(x)[0]
+        confidence = float(proba.max())
         return {"SampleID": row["SampleID"], "pred_L1": p1, "pred_L2": p2,
                 "advisory": advise(p1, p2, self.kb_path),
-                "qa_issues": row["qa_issues"], "R0_fallback": row["R0_fallback"]}
+                "qa_issues": row["qa_issues"], "R0_fallback": row["R0_fallback"],
+                "confidence": confidence}
 
     def predict_live(self, readings: dict, meta: dict | None = None) -> dict:
         return self.predict_tidy(self.loader.from_live(readings, meta or {}))
 
     def predict_csv_sample(self, csv_path: str, sample_id: str) -> dict:
-        for chunk in pd.read_csv(csv_path, chunksize=500_000):
-            hit = chunk[chunk["SampleID"] == sample_id]
-            if len(hit):
-                return self.predict_tidy(hit)
+        from src.ingestion import iter_samples_csv
+        for _, sdf in iter_samples_csv(csv_path):
+            if sdf["SampleID"].iloc[0] == sample_id:
+                return self.predict_tidy(sdf)
         raise ValueError(f"{sample_id} not found in {csv_path}")
 
 

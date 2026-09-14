@@ -11,3 +11,15 @@ quarantine.csv
 *.csv
 *.parquet
 datasets/
+# track the small IPM advisory lookup (exception to *.csv)
+!advisory/kb.csv
+# frontend dependencies
+node_modules/
+frontend/
+VOCguard-frontend-updated/VOCguard-frontend/node_modules/
+# environment files
+.env
+# but allow frontend env config
+!VOCguard-frontend-updated/VOCguard-frontend/.env
+# build output
+dist/

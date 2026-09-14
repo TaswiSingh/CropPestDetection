@@ -6,7 +6,7 @@ concentration/distance invariant for field deployment.
 from __future__ import annotations
 import numpy as np
 import pandas as pd
-from .ingestion import SENSORS, EXPECTED_COUNTS
+from .ingestion import SENSORS, TREATMENT_TO_L1
 
 EPS = 1e-6
 ACQ_QUERIES = {"slope_lo": 0.10, "slope_hi": 0.30, "steady_frac": 0.20, "rec_tail": 10}
@@ -71,12 +71,12 @@ def process_sample(sdf: pd.DataFrame) -> dict:
         tail = dr.loc[rec, :].to_numpy()[-ACQ_QUERIES["rec_tail"]:, :]
         row["recovery_return"] = float(np.mean(np.abs(tail)))
         t_rec = sdf.loc[rec, "Time_s"].to_numpy()
-        row["recovery_auc"] = float(np.mean([np.trapezoid(dr.loc[rec, s].to_numpy(), t_rec) for s in SENSORS]))
+        row["recovery_auc"] = float(np.mean(np.abs([np.trapezoid(dr.loc[rec, s].to_numpy(), t_rec) for s in SENSORS])))
     else:
         row["recovery_return"] = np.nan
-        row["recovery_auc"] = np.nan
+        row["recovery_auc"] = float("nan")
     trt = row["Treatment"]
-    row["y_L1"] = {"Control": "Control", "Mechanical": "Mechanical"}.get(trt, "Pest")
+    row["y_L1"] = TREATMENT_TO_L1.get(trt, "Pest")
     row["y_L2"] = trt if trt in ("Low", "Medium", "High") else "NA"
     return row
 
@@ -84,13 +84,11 @@ def process_sample(sdf: pd.DataFrame) -> dict:
 def build_features_csv(input_csv: str, output_parquet: str, chunksize: int = 500_000) -> str:
     from .ingestion import iter_samples_csv
     import pyarrow.parquet as pq, pyarrow as pa
-    writer = None
+    rows = []
     n = 0
     for _, sdf in iter_samples_csv(input_csv, chunksize):
-        tbl = pa.Table.from_pylist([process_sample(sdf)])
-        writer = writer or pq.ParquetWriter(output_parquet, tbl.schema)
-        writer.write_table(tbl)
+        rows.append(process_sample(sdf))
         n += 1
-    if writer:
-        writer.close()
+    tbl = pa.Table.from_pylist(rows)
+    pq.write_table(tbl, output_parquet)
     return f"wrote {n} sample rows -> {output_parquet}"

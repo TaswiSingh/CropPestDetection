@@ -18,6 +18,8 @@ EXPECTED_COUNTS = {"baseline": 300, "acquisition": 1200, "recovery": 600}
 
 TREATMENTS = ("Control", "Low", "Medium", "High", "Mechanical")
 TIME_H = (1, 3, 6, 12, 24, 48, 168)
+TREATMENT_TO_L1 = {"Control": "Control", "Mechanical": "Mechanical"}
+TREATMENT_TO_L2 = {t: t for t in ("Low", "Medium", "High")}
 
 
 def make_plant_id(df: pd.DataFrame) -> pd.Series:
