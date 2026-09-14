@@ -1,50 +1,40 @@
-# CropPestDetection — tomato thrips e-nose
+# VOCguard Frontend — Sensor Simulator
 
-Longitudinal e-nose: 2100 exposures (5 treatments x 7 Time_h x 60 reps), 300 plants.
-`plant_id = Treatment_Replicate`. Per exposure: baseline 30s / acquisition 120s / recovery 60s @0.1s.
+A React + Vite frontend for the VOCguard crop intelligence prototype.
 
-## Data engineering (done)
-- `src/ingestion.py` — chunked `iter_samples_csv` + `UniversalSensorLoader` (CSV-replay = live-IoT schema)
-- `src/features.py` — per-SampleID R0 median -> dR/R0 -> Peak/AUC/Slope/SteadyState + array-ratio + recovery QA
-- `src/splits.py` — stratified GroupKFold by `plant_id`, zero plant leakage
-- `scripts/make_features.py` — full build: `python scripts/make_features.py --input <csv> --output processed/features.parquet`
-- Kaggle: see `scripts/kaggle_setup.md`; code in GitHub, 880MB CSV as private Kaggle Dataset only.
+## ML reference used
+This UI is aligned to the `TaswiSingh/CropPestDetection` ML repository:
+- 9 raw e-nose channels: TGS2600, TGS2602, TGS822, MQ3, MQ135, MQ138, MiCS_NO2, MiCS_NH3, MiCS_CO.
+- Inference expects a sensor cycle with baseline, acquisition and recovery phases.
+- The repository's feature pipeline creates 72 model features: Peak, AUC, Slope, Steady and per-feature ratios.
+- Head-1 labels: Control / Mechanical / Pest.
+- Head-2 labels for Pest: High / Low / Medium.
+- Temperature and humidity are included in this frontend as field context; they are NOT among the 72 listed XGBoost features in the supplied feature list.
 
-## Labels
-Head-1 `y_L1`: Control / Mechanical / Pest. Head-2 `y_L2` (pest only): Low / Medium / High.
-`advisory/` maps predictions -> IPM actions (Shinde KB, deterministic, no training).
+## Run
+```bash
+npm install
+npm run dev
+```
 
-## Training (to be done, CPU-only, plant-grouped 5-fold)
-- Head-1 champion `xgb_default`: early (1h-6h) Pest recall **1.00**, Mechanical->Pest **0.04**. Gate (0.85 / 0.05) **PASS**. Tuning added nothing at ceiling.
-- Head-2 severity acc 0.66: 1h 0.53 / 3h 0.64 / 6h 0.42 / 12h 0.53 / 24h 0.83 / 48h 0.80 / 168h 0.87 — early weakness expected, late resolve.
-- Top drivers: MiCS_NO2/NH3 AUC + steady-state (nitrogenous HIPV pathway).
-- Artifacts: `models/head1_xgb.json`, `models/head2_xgb.json`, `models/feature_list.json` (72, no scaler — trees scale-invariant). Honest metrics: `reports/final_metrics.json` (OOF, not refit).
-- Leakage checks: R0 baselines identical across treatments; zero plant overlap (`scripts/leak_check.py`).
+## Backend connection
+Create `.env`:
+```env
+VITE_API_URL=http://localhost:8000/predict
+```
+The frontend sends:
+```json
+{
+  "readings": {
+    "Time_s": [], "Phase": [],
+    "TGS2600": [], "TGS2602": [], "TGS822": [], "MQ3": [], "MQ135": [], "MQ138": [],
+    "MiCS_NO2": [], "MiCS_NH3": [], "MiCS_CO": []
+  },
+  "meta": {"crop":"Tomato","plot":"Plot A-01","temperature":25,"humidity":60}
+}
+```
 
-## Inference (done, RPi-ready)
-- `src/predict.py` — `Predictor().predict_live(readings, meta)` for greenhouse use; `predict_csv_sample()` for replay. Cycle: 30s baseline + 120s acquisition + 60s recovery @10Hz. Verified: live dict path == CSV path; 60/60 replay correct.
-- `notebooks/05_inference.ipynb` — field template.
+The frontend deliberately keeps the ML integration behind `src/services/mlService.js`. Without a backend, it uses a clearly labelled deterministic simulator so the UI remains demoable. The simulator presets alter sensor values; they do not directly force a label.
 
-## Results (gate PASS, XGB defaults ship)
-
-![Pest caught at 1h](reports/figures/early_recall_curve.png)
-*Early recall 1.00 at 1–6h for every real model; dummy 0.59.*
-
-![Rarely cries wolf](reports/figures/confusion_head1.png)
-*Mechanical→Pest 4% (limit 5%); Control and Pest rows perfect.*
-
-![Nitrogen sensors decide](reports/figures/importance_top15.png)
-*MiCS NO2/NH3 AUC + steady-state carry 60%+ of gain.*
-
-Full set: `reports/figures/` (`head2_time_curve.png`, `ceiling_bars.png`), viewer `notebooks/06_results.ipynb`, rebuild `python src/plots.py`.
-
-## smoke test file work
-
-- Performed an end-to-end smoke test using representative Control, Low, Medium, High and Mechanical samples to verify data loading, complete SampleID handling, feature extraction, label generation and XGBoost training/prediction.
-- Created and validated a 50-plant dataset with all 7 longitudinal time points and performed plant-wise 5-fold validation with zero train-validation plant overlap.
-- Investigated Mechanical → Pest false positives through feature-level analysis and identified strong overlap in MiCS_NO2 and MiCS_NH3 responses between incorrectly classified Mechanical samples and Pest samples.
-- Created a leakage-free plant-wise 240/60 train-test split from the 300 plants, keeping all longitudinal measurements of each plant together.
-- Evaluated the locked XGBoost Head-1 model on 60 unseen plants, achieving ~99% accuracy, 1.00 early Pest recall and 2.38% Mechanical → Pest false alarms.
-- Evaluated the Head-2 pest severity model, achieving 65.87% accuracy, and analysed its feature importance and performance across time points.
-- Performed Optuna-based XGBoost hyperparameter tuning and compared the tuned model with the default configuration; the default configuration was retained because tuning did not improve early Pest recall.
-- Prepared the ML workflow for future hardware integration by maintaining a common prediction pipeline for CSV replay and future live e-nose sensor readings.
+## Important
+The real repository model should be called through the Python/FastAPI inference pipeline because the XGBoost models operate on the engineered 72-feature vector, not directly on nine single slider values. The frontend generates a 210-second synthetic sensor cycle to match the repository's live-ingestion protocol.
