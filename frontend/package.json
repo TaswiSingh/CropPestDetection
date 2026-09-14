@@ -1,0 +1,26 @@
+{
+  "name": "evil-lary-frontend",
+  "version": "0.1.0",
+  "description": "VOCguard AI-powered crop intelligence frontend prototype",
+  "private": true,
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5000",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 5000"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@vitejs/plugin-react": "^6.1.1",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^1.45.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-leaflet": "^4.2.1",
+    "react-router-dom": "^7.18.3",
+    "recharts": "^3.10.1",
+    "vite": "^8.3.0"
+  }
+}
